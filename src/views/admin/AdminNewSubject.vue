@@ -5,6 +5,7 @@ import { useRouter } from 'vue-router';
 
 const store = useStore();
 const router = useRouter();
+const currentUser = computed(() => store.state.currentUser);
 const subject = reactive({
   name: '',
   description: '',
@@ -17,30 +18,26 @@ function addChapter() {
   })
 };
 const removeChapter = (index) => chapters.splice(index, 1);
-async function submit() {
+async function onSubmit() {
   store.dispatch('createSubject', {
     ...subject,
     chapters,
   });
   subject.name = '';
   subject.description = '';
-  for (let i = 0; i < chapters.length; ++i) {
-    chapters.pop();
-  }
-  if (!response.ok)
-    console.error(`[ERROR] Failed to add subject!`);
-  store.dispatch('fetchQuizzes');
-  router.push('/admin')
+  chapters.splice(0, chapters.length);
+  store.dispatch('fetchSubjects');
+  router.push('/admin');
 }
 </script>
 
 <template>
-  <div class="mx-5 px-5">
+  <div class="mx-5 px-5" v-if="currentUser">
     <h4 class="display-4 text-center">Add New Subject</h4>
-    <form @submit.prevent.stop="submit" class="container-md">
+    <form @submit.prevent.stop="onSubmit" class="container-md">
       <div v-for="(attr, key) in Object.keys(subject)" class="form-floating text-start my-2" :key>
         <textarea rows="10" cols="30" v-model="subject[attr]" v-if="attr === 'description'" :id="attr"
-          class="form-control" autocomplete="off" />
+          class="form-control" autocomplete="off"></textarea>
         <input v-else v-model="subject[attr]" type="text" :id="attr" class="form-control" autocomplete="off" />
         <label :for="attr">{{ attr }}</label>
       </div>

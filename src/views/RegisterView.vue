@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { store } from '@/store';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
+const router = useRouter();
 
 const user = ref({
   email: '',
@@ -11,7 +12,7 @@ const user = ref({
   last_name: '',
   qualification: '',
   dob: new Date().toISOString().split('T')[0],
-})
+});
 
 const qualifications = [
   'Matriculation',
@@ -19,52 +20,41 @@ const qualifications = [
   'Graduation',
   'Post Graduation',
   'PhD'
-]
+];
 
 const getType = (attr) => {
   if (attr === 'password') return 'password'
   if (attr === 'dob') return 'date'
   return 'text'
-}
+};
 
-async function submit() {
-  const { first_name, last_name } = user.value
+async function onSubmit() {
+  try {
+    const { first_name, last_name } = user.value
 
-  await fetch('http://localhost:5000/users', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
+    store.dispatch('registerUser', {
       name: `${first_name} ${last_name}`,
       ...user.value
-    }),
-  }).then(async (response) => {
+    });
     user.value = {
-      first_name: '',
-      last_name: '',
       email: '',
       password: '',
+      last_name: '',
+      first_name: '',
       qualification: '',
       dob: new Date().toISOString().split('T')[0]
     };
-
-    if (!response.ok)
-      throw new Error(`[ERROR] FAILED TO REGISTER USER`)
-    else {
-      const { message } = await response.json()
-      console.log('[LOG]', message)
-
-      router.push('/login')
-    }
-  })
+    router.push('/login');
+  } catch (error) {
+    console.error('[ERROR]', error);
+  }
 }
 const toLabel = (attr) => {
   return attr
     .split('_')
     .map((str) => `${str[0].toUpperCase()}${str.slice(1)}`)
-    .join(' ')
-}
+    .join(' ');
+};
 </script>
 
 <template>
@@ -83,7 +73,7 @@ const toLabel = (attr) => {
         </select>
       </div>
     </div>
-    <button @click.stop.prevent="submit" class="btn btn-primary mt-3" type="submit">
+    <button @click.stop.prevent="onSubmit" class="btn btn-primary mt-3" type="submit">
       Register
     </button>
   </form>

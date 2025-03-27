@@ -25,7 +25,7 @@ function startQuiz() {
 </script>
 
 <template>
-  <div class="quiz container">
+  <div class="quiz container" v-if="currentUser">
     <h1 class="display-5">{{ quiz.name }}</h1>
     <div v-for="attr in attrs" class="row mt-2">
       <span class="col fs-5 bg-dark p-2 rounded">{{ attr.name }}</span>

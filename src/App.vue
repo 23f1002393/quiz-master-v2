@@ -1,12 +1,12 @@
 <script setup>
-import { ref, onErrorCaptured, computed } from 'vue'
-import { useStore } from 'vuex'
-import { RouterView } from 'vue-router'
-import NavBar from '@components/NavBar.vue'
+import { ref, onErrorCaptured, computed } from 'vue';
+import { useStore } from 'vuex';
+import { RouterView } from 'vue-router';
+import NavBar from '@components/NavBar.vue';
 
-const store = useStore()
-const currentUser = computed(() => store.state.currentUser)
-const isHidden = computed(() => store.state.activeQuiz != null)
+const store = useStore();
+const currentUser = computed(() => store.state.currentUser);
+const hidden = computed(() => store.state.activeQuiz != null);
 
 const links = computed(() => !currentUser.value ?
   [
@@ -22,17 +22,17 @@ const links = computed(() => !currentUser.value ?
       { name: "Home", path: "/user" },
       { name: "Scores", path: "/user/scores" },
       { name: "Summary", path: "/user/summary" },
-    ])
+    ]);
 
 const errMsg = ref(null);
 onErrorCaptured(e => {
   errMsg.value = e.message;
   return true;
-})
+});
 </script>
 
 <template>
-  <NavBar :links class="bg-dark" :isHidden />
+  <NavBar :links class="bg-dark" :hidden />
   <div v-if="errMsg" class="alert alert-danger" role="alert">
     {{ errMsg }}
   </div>

@@ -1,13 +1,14 @@
 <script setup>
-import QuizCard from '@components/QuizCard.vue'
+import QuizCard from '@components/QuizCard.vue';
 
-import { computed } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { computed } from 'vue';
+import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 
-const store = useStore()
-const router = useRouter()
-await store.dispatch('fetchQuizzes')
+const store = useStore();
+const router = useRouter();
+await store.dispatch('fetchQuizzes');
+const currentUser = computed(() => store.state.currentUser);
 
 const quizzes = computed(() => store.state.quizzes);
 const upcommingCount = computed(() => {
@@ -24,7 +25,7 @@ function onView(quiz_id) {
 </script>
 
 <template>
-  <div>
+  <div v-if="currentUser">
     <h1 class="display-6 text-center">Upcomming Quizzes</h1>
     <hr />
     <div v-if="quizzes && upcommingCount != 0" class="container-md">

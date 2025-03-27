@@ -25,7 +25,7 @@ function onView(quiz_id) {
 </script>
 
 <template>
-  <div v-show="currentUser" class="text-center">
+  <div v-if="currentUser" class="text-center">
     <h1 class="display-6">Active Quizzes</h1>
     <button type="button" class="btn btn-primary ps-3 pe-3 my-3" @click.prevent="router.push('/admin/quiz/add')">
       add quiz <img src="@/assets/add.svg" alt="add" />

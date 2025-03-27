@@ -8,7 +8,7 @@ const store = useStore();
 const router = useRouter();
 const currentUser = computed(() => store.state.currentUser);
 
-const { links, isHidden } = defineProps(['links', 'isHidden']);
+const { links, hidden } = defineProps(['links', 'hidden']);
 
 function logout() {
   store.commit('logoutUser');
@@ -17,7 +17,7 @@ function logout() {
 </script>
 
 <template>
-  <header v-show="!isHidden">
+  <header v-show="!hidden">
     <nav class="bg-dark fixed-top">
       <span @click.prevent="() => { router.push(''); }" class="route-link ps-4 fs-5 lead">
         QuizMaster v2

@@ -1,7 +1,8 @@
-import Vuex, { createLogger } from 'vuex'
+import Vuex from 'vuex'
+
+const BACKEND_URL = '/api'
 
 export const store = new Vuex.Store({
-  plugins: [createLogger()],
   state: {
     currentUser: null,
     authenticated: false,
@@ -12,16 +13,25 @@ export const store = new Vuex.Store({
     hideNavbar: false,
   },
   actions: {
-    async loginUser({ commit }, data) {
-      await fetch('http://localhost:5000/login', {
+    async registerUser(_, payload) {
+      await fetch(`${BACKEND_URL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify(payload),
+      })
+    },
+    async loginUser({ commit }, data) {
+      await fetch(`${BACKEND_URL}/login`, {
+        method: 'POST',
         credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       })
-      const { current_user } = await fetch('http://localhost:5000/users/me', {
+      const { current_user } = await fetch(`${BACKEND_URL}/users/me`, {
         credentials: 'include',
       }).then((response) => response.json())
 
@@ -32,7 +42,7 @@ export const store = new Vuex.Store({
     },
     async fetchSubjects({ commit, state }) {
       if (state.currentUser != null) {
-        const { subjects } = await fetch('http://localhost:5000/subjects', {
+        const { subjects } = await fetch(`${BACKEND_URL}/subjects`, {
           credentials: 'include',
         })
           .then((response) => response.json())
@@ -45,7 +55,7 @@ export const store = new Vuex.Store({
     },
     async fetchQuizzes({ commit, state }) {
       if (state.currentUser != null) {
-        const { quizzes } = await fetch('http://localhost:5000/quizzes', {
+        const { quizzes } = await fetch(`${BACKEND_URL}/quizzes`, {
           credentials: 'include',
         })
           .then((response) => response.json())
@@ -57,7 +67,7 @@ export const store = new Vuex.Store({
     },
     async fetchScores({ commit, state }) {
       if (state.currentUser != null) {
-        const { scores } = await fetch('http://localhost:5000/scores', {
+        const { scores } = await fetch(`${BACKEND_URL}/scores`, {
           credentials: 'include',
         })
           .then((response) => response.json())
@@ -65,16 +75,26 @@ export const store = new Vuex.Store({
         commit('setScores', scores)
       } else console.warn('[WARN] user login required')
     },
-    async fetchStats({ commit }) {
-      const stats = await fetch('http://localhost:5000/stats', {
+    async fetchUserStats({ commit }) {
+      const stats = await fetch(`${BACKEND_URL}/user/stats`, {
         credentials: 'include',
       })
         .then((response) => response.json())
         .catch((error) => console.error('[ERROR]', error))
       commit('setStats', stats)
     },
+    async fetchAdminStats({ commit, state }) {
+      if (state.currentUser.isAdmin) {
+        const stats = await fetch(`${BACKEND_URL}/admin/stats`, {
+          credentials: 'include',
+        })
+          .then((response) => response.json())
+          .catch((error) => console.error('[ERROR]', error))
+        commit('setStats', stats)
+      }
+    },
     async createSubject(_, payload) {
-      await fetch('http://localhost:5000/subjects', {
+      await fetch(`${BACKEND_URL}/subjects`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -84,8 +104,7 @@ export const store = new Vuex.Store({
       }).catch((error) => console.error('[ERROR]', error))
     },
     async createQuiz(_, payload) {
-      console.log(payload)
-      await fetch('http://localhost:5000/quizzes', {
+      await fetch(`${BACKEND_URL}/quizzes`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -95,7 +114,7 @@ export const store = new Vuex.Store({
       }).catch((error) => console.error('[ERROR]', error))
     },
     async deleteQuiz({ dispatch }, quiz_id) {
-      await fetch(`http://localhost:5000/quizzes/${quiz_id}`, {
+      await fetch(`${BACKEND_URL}/quizzes/${quiz_id}`, {
         method: 'DELETE',
         credentials: 'include',
       })
@@ -103,8 +122,17 @@ export const store = new Vuex.Store({
         .then(() => dispatch('fetchQuizzes'))
         .catch((error) => console.error(error))
     },
+    async deleteSubject({ dispatch }, subject_id) {
+      await fetch(`${BACKEND_URL}/subjects/${subject_id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+        .then((response) => response.json())
+        .then(() => dispatch('fetchSubjects'))
+        .error((error) => console.error('[ERROR]', error))
+    },
     async updateQuiz(_, payload) {
-      await fetch(`http://localhost:5000/subjects/${payload.id}`, {
+      await fetch(`${BACKEND_URL}/subjects/${payload.id}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -115,15 +143,17 @@ export const store = new Vuex.Store({
         .then(() => store.dispatch('fetchSubjects'))
         .catch((error) => console.error('[ERROR]', error))
     },
-  },
-  async deleteSubject({ dispatch }, subject_id) {
-    await fetch(`http://localhost:5000/subjects/${subject_id}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    })
-      .then((response) => response.json())
-      .then(() => dispatch('fetchSubjects'))
-      .error((error) => console.error('[ERROR]', error))
+    async submitQuiz({ commit, state }, payload) {
+      await fetch(`${BACKEND_URL}/quiz/${state.activeQuiz}/submit`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+      commit('clearQuiz')
+    },
   },
   mutations: {
     setAuthentication(state, { currentUser, authenticated }) {

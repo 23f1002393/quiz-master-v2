@@ -24,7 +24,7 @@ function onSubmit() {
 </script>
 
 <template>
-  <div class="mx-5 px-5">
+  <div class="mx-5 px-5" v-if="currentUser">
     <h4 class="display-4 text-center">Add New Subject</h4>
     <form @submit.prevent.stop="onSubmit" class="container-md">
       <div v-for="(attr, key) in Object.keys(subject)" class="form-floating text-start my-2" :key>

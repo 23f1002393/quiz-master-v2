@@ -3,19 +3,18 @@ import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from 'vuex'
 
-const store = useStore()
-const router = useRouter()
+const store = useStore();
+const router = useRouter();
 
-const currentUser = computed(() => store.state.currentUser)
+const currentUser = computed(() => store.state.currentUser);
 const quiz = computed(() =>
   store.state.quizzes.find(quiz =>
-    quiz.quiz_id === store.state.activeQuiz))
+    quiz.quiz_id === store.state.activeQuiz));
 
-const qCount = ref(0) // question count
-const cQues = ref(quiz.value.questions.at(0).id) // current question
-const sOpt = ref(-1) // selected option
-const ques = computed(() => quiz.value.questions);
-console.log('timer set for:', quiz.value.hh * 3600 + quiz.value.mm * 60, 's');
+const questionCount = ref(0);
+const currentQuestion = ref(quiz.value.questions.at(0).id);
+const selectedOption = ref(-1);
+const questions = computed(() => quiz.value.questions);
 
 const timer = ref(setTimeout(() => {
   alert('Time is up!');
@@ -24,25 +23,30 @@ const timer = ref(setTimeout(() => {
 
 const hours = ref(quiz.value.hh);
 const minutes = ref(quiz.value.mm);
+const seconds = ref(0);
+
 setInterval(() => {
   if (hours.value > 0 && minutes.value === 0) {
     --hours.value;
     minutes.value = 59;
-  } else {
+  } else if (minutes.value > 0 && seconds.value === 0) {
     --minutes.value;
+    seconds.value = 59;
+  } else {
+    --seconds.value;
   }
 }, 1000);
 
 const selected = reactive({});
 
 function onNext() {
-  if (sOpt.value !== -1) {
-    ++qCount.value;
-    selected[cQues.value] = sOpt.value;
-    if (qCount.value < ques.value.length)
-      cQues.value = ques.value[qCount.value].id;
-    else cQues.value = -1;
-    sOpt.value = -1;
+  if (selectedOption.value !== -1) {
+    ++questionCount.value;
+    selected[currentQuestion.value] = selectedOption.value;
+    if (questionCount.value < questions.value.length)
+      currentQuestion.value = questions.value[questionCount.value].id;
+    else currentQuestion.value = -1;
+    selectedOption.value = -1;
   }
 }
 
@@ -51,42 +55,31 @@ async function onSubmit() {
     if (timer.value != null)
       clearTimeout(timer.value);
 
-    await fetch('http://localhost:5000/submit', {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        quiz_id: quiz.value.quiz_id,
-        selected,
-      })
-    });
-
-    store.commit('clearQuiz');
-    router.push('/user');
+    store.dispatch('submitQuiz', {
+      selected,
+    }).then(() => router.push('/user'));
   } catch (error) {
     console.error('[ERROR] submitting answers:', error);
   } finally {
-    sOpt.value = -1;
+    selectedOption.value = -1;
   }
 }
 </script>
 
 <template>
-  <div v-if="quiz" class="container-md">
-    <p class="lead">{{ hours }}:{{ minutes }}</p>
-    <p class="lead bg-dark rounded d-inline p-2" v-if="qCount < ques.length">{{ qCount +
-      1 }}/{{ ques.length }}</p>
+  <div v-if="quiz && currentUser" class="container-md">
+    <p class="lead">{{ hours }}:{{ minutes }}:{{ seconds }}</p>
+    <p class="lead bg-dark rounded d-inline p-2" v-if="questionCount < questions.length">{{ questionCount +
+      1 }}/{{ questions.length }}</p>
     <h1 class="display-2 text-center">{{ quiz.name }}</h1>
     <div class="quiz">
-      <div class="question" v-for="question in ques" :key="question.id" v-show="cQues === question.id">
+      <div class="question" v-for="question in questions" :key="question.id" v-show="currentQuestion === question.id">
         <p class="question__statement lead fs-4">{{ question.statement }}</p>
         <div class="question__options">
           <div class="question__option" v-for="option in question.options" :key="option.id">
-            <input class="question__optioninput btn-check" :checked="option.id === sOpt"
+            <input class="question__optioninput btn-check" :checked="option.id === selectedOption"
               :id="`question${question.id}-option${option.id}`" autocomplete="off" />
-            <label class="question__optionlabel btn btn-outline-primary" @click.prevent="sOpt = option.id"
+            <label class="question__optionlabel btn btn-outline-primary" @click.prevent="selectedOption = option.id"
               :for="`question${question.id}-option${option.id}`">
               {{ option.statement }}
             </label>
@@ -94,7 +87,7 @@ async function onSubmit() {
           <button class="question__submit btn btn-success" @click.prevent="onNext">next</button>
         </div>
       </div>
-      <button v-show="qCount === ques.length" class="quiz__submit btn btn-success" style="grid-area:  2 / 2"
+      <button v-show="questionCount === questions.length" class="quiz__submit btn btn-success" style="grid-area:  2 / 2"
         @click="onSubmit">Submit</button>
     </div>
   </div>

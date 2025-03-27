@@ -8,3 +8,6 @@ SQLAlchemy
 bcrypt
 matplotlib
 celery
+redis
+seaborn
+gunicorn

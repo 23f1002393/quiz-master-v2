@@ -10,6 +10,7 @@ Base = declarative_base(type_annotation_map={
     UserQualification: Enum(enum.Enum),
 })
 
+
 class User(Base):
     __tablename__ = "user"
     id: Mapped[int] = mapped_column(primary_key=True)

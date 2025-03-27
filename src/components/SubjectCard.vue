@@ -16,7 +16,7 @@ const { subject, subjectKey } = defineProps(['subject', 'subjectKey'])
 
     <div class="row px-2 gap-2">
       <button v-if="currentUser.isAdmin" class="col btn btn-danger"
-        @click="() => { store.dispatch('deleteSubject', subject.subject_id) }">
+        @click="() => { store.dispatch('deleteSubject', subject.id) }">
         <img src="@assets/remove.svg" alt="delete subject">
       </button>
     </div>

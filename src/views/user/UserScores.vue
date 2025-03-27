@@ -4,13 +4,13 @@ import { useStore } from 'vuex';
 
 const store = useStore();
 await store.dispatch('fetchScores');
+const currentUser = computed(() => store.state.currentUser);
 
 const scores = computed(() => store.state.scores);
-console.log(scores.value)
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" v-if="currentUser">
     <h1 class="display-4 text-center">Quiz Scores</h1>
     <hr />
     <div v-if="scores && scores.length !== 0">

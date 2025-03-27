@@ -6,6 +6,7 @@ import { useStore } from 'vuex'
 const store = useStore();
 const router = useRouter();
 const subjects = computed(() => store.state.subjects);
+const currentUser = computed(() => store.state.currentUser);
 
 const subject = ref(null);
 const chapter = ref(null);
@@ -69,7 +70,7 @@ function removeQuestion(index) {
 </script>
 
 <template>
-  <div class="vw-25">
+  <div class="vw-25" v-if="currentUser">
     <h4 class="display-4 text-center">Add New Quiz</h4>
     <!-- New Quiz Form -->
     <form @submit.prevent.stop="onSubmit" class="container-md">

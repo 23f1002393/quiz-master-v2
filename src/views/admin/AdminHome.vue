@@ -13,20 +13,18 @@ const subjects = computed(() => store.state.subjects)
 </script>
 
 <template>
-  <div>
-    <div v-show="currentUser">
-      <h1 class="display-5">Available Subjects</h1>
+  <div v-if="currentUser">
+    <h1 class="display-5">Available Subjects</h1>
 
-      <div v-show="currentUser.isAdmin">
-        <button type="button" class="btn btn-primary ps-3 pe-3 text-center mt-3"
-          @click.prevent=" router.push('/admin/subject/add')">
-          Add Subject <img src="@assets/add.svg" alt="add subject" />
-        </button>
-      </div>
+    <div v-if="currentUser.isAdmin">
+      <button type="button" class="btn btn-primary ps-3 pe-3 text-center mt-3"
+        @click.prevent=" router.push('/admin/subject/add')">
+        Add Subject <img src="@assets/add.svg" alt="add subject" />
+      </button>
+    </div>
 
-      <div class="d-flex p-0 flex-wrap flex-md-nowrap justify-content-start" style="height: 60dvh;">
-        <SubjectCard v-for="(subject, i) in subjects" :subjectKey="i" :key="i" :subject="subject" />
-      </div>
+    <div class="d-flex p-0 flex-wrap flex-md-nowrap justify-content-start" style="height: 60dvh;">
+      <SubjectCard v-for="(subject, i) in subjects" :subjectKey="i" :key="i" :subject="subject" />
     </div>
   </div>
 </template>
