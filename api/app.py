@@ -12,8 +12,7 @@ cors = CORS()
 def create_app():
     app = Flask(__name__)
     # add the API and AppConfig
-    cors.init_app(app, supports_credentials=True, resources={
-        r"/*": {"origins": "http://localhost:3000"}})
+    cors.init_app(app, supports_credentials=True)
     api.init_app(app)
     jwt.init_app(app)
     app.config.from_object(AppConfig)
@@ -34,6 +33,7 @@ def login():
     if user := session.execute(select(User).where(User.email==email)).scalar():
         if check_password_hash(user.password, password):
             response = make_response({
+                "id": user.id,
                 "name": user.name, 
                 "isAdmin": user.email=='admin@qm.xyz'
             })

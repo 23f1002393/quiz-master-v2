@@ -5,8 +5,9 @@ from flask import request, jsonify
 from flask_restful import Resource, Api
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, delete, update
-from flask_jwt_extended import JWTManager, jwt_required, current_user
 from werkzeug.security import generate_password_hash
+from flask_jwt_extended import JWTManager, jwt_required, current_user
+from matplotlib import pyplot as plt
 
 
 api = Api()
@@ -26,6 +27,7 @@ class Users(Resource):
     @jwt_required()
     def get(self):
         return jsonify(current_user=dict(
+            id=current_user.id,
             name=current_user.name,
             isAdmin=current_user.email=='admin@qm.xyz'
         ))
@@ -253,30 +255,91 @@ class UserScores(Resource):
 class Statistics(Resource):
     @jwt_required()
     def get(self):
+        MONTHS = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ]
         try:
-            by_subject = {}
-            for score in current_user.scores:
-                if score.quiz.subject_id not in by_subject:
-                    by_subject[score.quiz.subject_id] = {
-                        "name": score.quiz.subject.name,
-                        "scores": [],
-                        "average": 0,
-                        "total": 0,
-                        "score": 0,
-                    }
-                by_subject[score.quiz.subject_id]["scores"].append({
-                    "total": score.total_score,
-                    "correct": score.user_score,
-                    "date_of_quiz": score.quiz.date_of_quiz,
-                    "id": score.id,
-                })
-                by_subject[score.quiz.subject_id]["total"] += score.total_score
-                by_subject[score.quiz.subject_id]["score"] += score.user_score
-            for subject in by_subject.values():
-                subject["average"] = subject["score"] / subject["total"]
-            return jsonify({
-                "bySubject": by_subject
-            })
+            if current_user.email != 'admin@qm.xyz': # userwise quiz summary
+                by_subject = {}
+                by_month = {}
+                for score in current_user.scores:
+                    if score.quiz.subject.name not in by_subject:
+                        by_subject[score.quiz.subject.name] = {
+                            "name": score.quiz.subject.name,
+                            "scores": [],
+                            "average": 0,
+                            "total": 0,
+                            "score": 0,
+                        }
+                    if score.quiz.date_of_quiz.month not in by_month:
+                        by_month[score.quiz.date_of_quiz.month] = {"month": score.quiz.date_of_quiz.month, "count": 0}
+                    by_month[score.quiz.date_of_quiz.month]["count"] += 1
+
+                    by_subject[score.quiz.subject.name]["scores"].append({
+                        "total": score.total_score,
+                        "correct": score.user_score,
+                        "date_of_quiz": score.quiz.date_of_quiz,
+                        "id": score.id,
+                    })
+                    by_subject[score.quiz.subject.name]["total"] += score.total_score
+                    by_subject[score.quiz.subject.name]["score"] += score.user_score
+
+                for subject in by_subject.values():
+                    subject["average"] = subject["score"] / subject["total"]
+                
+                fig = plt.figure()
+                plt.bar(by_subject.keys(), [subject["average"] for subject in by_subject.values()])
+                plt.xlabel("Subjects")
+                plt.ylabel("Average")
+                filename_by_subject = f"by_subject-{hash(current_user.email)}.png"
+                fig.savefig(f"public/images/{filename_by_subject}")
+
+                fig = plt.figure()
+                plt.pie(
+                    by_month.keys(),
+                    [month["count"] for month in by_month.values()], 
+                    autopct="%1.1f%%", 
+                    textprops=dict(color="w"))
+                plt.legend(
+                    [MONTHS[month-1] for month in by_month.keys()],
+                    title="Months")
+                filename_by_month = f"by_month-{hash(current_user.email)}.png"
+                fig.savefig(f"public/images/{filename_by_month}")
+
+                return jsonify(by_month=filename_by_month, by_subject=filename_by_subject, code=200)
+            else: # admin subject wise summary
+                by_subject = {}
+                
+                for score in session.execute(select(Score)).scalars():
+                    if score.quiz.subject.name not in by_subject:
+                        by_subject[score.quiz.subject.name] = {
+                            "max_score": 0,
+                            "user_count": 0
+                        }
+                    by_subject[score.quiz.subject.name]["max_score"] = max(
+                        by_subject[score.quiz.subject.name]["max_score"], score.user_score / score.total_score)
+                    by_subject[score.quiz.subject.name]["user_count"] += 1
+                
+                print(by_subject)
+                fig = plt.figure()
+                plt.bar(by_subject.keys(), [subject["max_score"] for subject in by_subject.values()])
+                plt.xlabel("Subjects")
+                plt.ylabel("Max Score")
+                fig.savefig("public/images/admin_subject_wise.png")
+
+                fig = plt.figure()
+                plt.pie(
+                    [subject["user_count"] for subject in by_subject.values()], 
+                    labels=by_subject.keys(),
+                    textprops=dict(color="w"),
+                    autopct="%1.1f%%")
+                plt.subplots_adjust(right=0.75)
+                plt.legend(by_subject.keys(), title="Subjects", bbox_to_anchor=(0.90, 0.25, 0.5, 0.5))
+                fig.savefig("public/images/admin_user_count.png")
+                print('files written')
+
+                return jsonify(user_count="admin_user_count.png", by_subject="admin_subject_wise.png", code=200)
         except IntegrityError:
             return jsonify(message='failed to ', code=500)
         except Exception as error:

@@ -25,8 +25,6 @@ export const store = new Vuex.Store({
         credentials: 'include',
       }).then((response) => response.json())
 
-      console.log(current_user)
-
       commit('setAuthentication', {
         currentUser: current_user,
         authenticated: true,

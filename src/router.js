@@ -16,6 +16,7 @@ import AdminNewSubject from '@views/admin/AdminNewSubject.vue'
 
 import { store } from '@/store'
 import { createRouter, createWebHistory } from 'vue-router'
+import AdminSummary from '@views/admin/AdminSummary.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -82,6 +83,11 @@ export const router = createRouter({
           name: 'adminHome',
           path: '',
           component: AdminHome,
+        },
+        {
+          name: 'adminSummary',
+          path: 'summary',
+          component: AdminSummary,
         },
         {
           name: 'quiz',

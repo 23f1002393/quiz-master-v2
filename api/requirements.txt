@@ -4,6 +4,7 @@ Flask-SQLAlchemy
 Flask-JWT-Extended
 setuptools
 Flask-CORS
-Flask-Migrate
 SQLAlchemy
 bcrypt
+matplotlib
+celery

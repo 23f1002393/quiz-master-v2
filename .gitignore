@@ -29,9 +29,10 @@ coverage
 *.sw?
 
 *.tsbuildinfo
-migrations/*
 api/__pycache__/*
 api/__pycache__/
 api/instance/*
 .venv/*
 .venv/
+*.db
+public/images/*.png

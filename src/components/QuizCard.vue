@@ -10,7 +10,7 @@ const { quiz, admin } = defineProps(['quiz', 'admin']);
       <h6 class="card-subtitle mb-2 text-secondary">{{ quiz.chapter }}</h6>
       <hr />
       <p class="card-text text-white">{{ quiz.remarks }}</p>
-      <div v-if="admin" class="gap-2 p-2">
+      <div v-if="admin" class="gap-2 p-2 d-flex justify-content-center">
         <button v-show="admin" class="col btn btn-warning" @click.prevent="() => emit('update', quiz)">
           <img src="@/assets/edit.svg" alt="edit quiz" />
         </button>
