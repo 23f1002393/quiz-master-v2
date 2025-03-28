@@ -9,7 +9,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask import request, send_from_directory, make_response, jsonify, Blueprint
 from flask_jwt_extended import (
     jwt_required,
-    get_current_user,
     create_access_token,
     set_access_cookies,
     unset_jwt_cookies,
@@ -107,8 +106,7 @@ def submit_quiz(quiz_id):
 @routes.route('/api/user/stats', methods=('GET',))
 @jwt_required()
 def user_stats():
-    current_user = get_current_user()
-    user = dict(
+    result = compute_user_statistics.delay(dict(
         email=current_user.email,
         scores=[dict(
             subject=score.quiz.subject.name,
@@ -116,8 +114,7 @@ def user_stats():
             user_score=score.user_score,
             total_score=score.total_score,
         ) for score in current_user.scores],
-    )
-    result = compute_user_statistics.delay(user)
+    ))
     while not result.ready():
         pass
     [by_subject, by_month] = result.get()
@@ -133,7 +130,6 @@ def admin_stats():
     by_month = "admin_month_wise.png"
     by_subject = "admin_subject_wise.png"
 
-    print('calling celery task')
     compute_monthly_statistics.delay()
 
     return make_response({
