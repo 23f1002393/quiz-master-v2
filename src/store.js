@@ -1,6 +1,6 @@
 import Vuex from 'vuex'
 
-const BACKEND_URL = '/api'
+const BACKEND_URL = 'http://127.0.0.1:5000/api'
 
 export const store = new Vuex.Store({
   state: {
@@ -93,7 +93,7 @@ export const store = new Vuex.Store({
         commit('setStats', stats)
       }
     },
-    async createSubject(_, payload) {
+    async createSubject({ dispatch }, payload) {
       await fetch(`${BACKEND_URL}/subjects`, {
         method: 'POST',
         credentials: 'include',
@@ -101,9 +101,11 @@ export const store = new Vuex.Store({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      }).catch((error) => console.error('[ERROR]', error))
+      })
+        .then(() => dispatch('fetchSubjects'))
+        .catch((error) => console.error('[ERROR]', error))
     },
-    async createQuiz(_, payload) {
+    async createQuiz({ dispatch }, payload) {
       await fetch(`${BACKEND_URL}/quizzes`, {
         method: 'POST',
         credentials: 'include',
@@ -111,14 +113,15 @@ export const store = new Vuex.Store({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
-      }).catch((error) => console.error('[ERROR]', error))
+      })
+        .then(() => dispatch('fetchQuizzes'))
+        .catch((error) => console.error('[ERROR]', error))
     },
     async deleteQuiz({ dispatch }, quiz_id) {
       await fetch(`${BACKEND_URL}/quizzes/${quiz_id}`, {
         method: 'DELETE',
         credentials: 'include',
       })
-        .then((response) => response.json())
         .then(() => dispatch('fetchQuizzes'))
         .catch((error) => console.error(error))
     },
@@ -127,20 +130,7 @@ export const store = new Vuex.Store({
         method: 'DELETE',
         credentials: 'include',
       })
-        .then((response) => response.json())
         .then(() => dispatch('fetchSubjects'))
-        .error((error) => console.error('[ERROR]', error))
-    },
-    async updateQuiz(_, payload) {
-      await fetch(`${BACKEND_URL}/subjects/${payload.id}`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      })
-        .then(() => store.dispatch('fetchSubjects'))
         .catch((error) => console.error('[ERROR]', error))
     },
     async submitQuiz({ commit, state }, payload) {

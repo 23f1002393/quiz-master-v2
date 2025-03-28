@@ -1,10 +1,10 @@
 from api.models import *
 from datetime import datetime
 from api.database import session
-from flask import request, jsonify
 from flask_restful import Resource, Api
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select, delete, update
+from flask import request, jsonify, make_response
 from flask_jwt_extended import JWTManager, jwt_required, current_user
 
 
@@ -61,20 +61,20 @@ class Subjects(Resource):
             }
             session.add_all(chapters)
             session.commit()
-            return jsonify(message='subject created successfully', code=201)
+            return make_response('subject created successfully', 201)
         except IntegrityError:
-            return jsonify(message='subject already exists', code=400)
+            return make_response('subject already exists', 400)
 
     @jwt_required()
     def delete(self, subject_id: int):
         try:
             session.execute(delete(Subject).where(Subject.id == subject_id))
             session.commit()
-            return jsonify(message='subject deleted successfully')
+            return make_response('subject deleted successfully')
         except IntegrityError:
-            return jsonify(message='failed to delete subject', code=500)
+            return make_response('failed to delete subject', 500)
         except Exception as error:
-            return jsonify(message=f'unknown error {error}', code=500)
+            return make_response(f'unknown error {error}', 500)
 
 
 class Quizzes(Resource):
@@ -157,11 +157,11 @@ class Quizzes(Resource):
                 session.execute(update(Question).where(
                     Question.id == question.id).values(correct=options[answer].id))
                 session.commit()
-            return jsonify(message='quiz created successfully', code=201)
+            return make_response('quiz created successfully', 201)
         except IntegrityError:
-            return jsonify(message='failed to create quiz', code=500)
+            return make_response('failed to create quiz', 500)
         except Exception as error:
-            return jsonify(message=f'unknown error {error}', code=500)
+            return make_response(f'unknown error {error}', 500)
 
     @jwt_required()
     def delete(self, quiz_id: int):
@@ -170,36 +170,12 @@ class Quizzes(Resource):
                 Quiz.id == quiz_id)).scalar()
             session.delete(quiz)
             session.commit()
-            return jsonify(message='quiz deleted successfully')
+            return make_response('quiz deleted successfully', 200)
         except IntegrityError as error:
             print(error)
-            return jsonify(message='failed to delete quiz!', code=500)
+            return make_response('failed to delete quiz!', 500)
         except Exception as error:
-            return jsonify(message=f'unknown error: {error}', code=500)
-
-
-class QuizSubmit(Resource):
-    @jwt_required()
-    def post(self):
-        try:
-            quiz_data = request.get_json()
-            quiz = session.execute(select(Quiz).where(
-                Quiz.id == quiz_data["quiz_id"])).scalar()
-
-            user_score = 0
-            for question in quiz.questions:
-                if question.correct == quiz_data["selected"][str(question.id)]:
-                    user_score += 1
-            user_score = Score(user_id=current_user.id, quiz_id=quiz.id,
-                               user_score=user_score, total_score=len(quiz.questions))
-            session.add(user_score)
-            session.commit()
-
-            return jsonify(message='user score updated!', code=201)
-        except IntegrityError:
-            return jsonify(message='failed to delete quiz', code=409)
-        except Exception as error:
-            return jsonify(message=f'unknown error: {error}', code=500)
+            return make_response(f'unknown error: {error}', 500)
 
 
 class UserScores(Resource):
@@ -220,12 +196,11 @@ class UserScores(Resource):
                 ]
             })
         except IntegrityError:
-            return jsonify(message='failed to fetch user scores', code=500)
+            return make_response('failed to fetch user scores', 500)
         except Exception as error:
-            return jsonify(message=f'unknown error: {error}', code=500)
+            return make_response(f'unknown error: {error}', 500)
 
 
 api.add_resource(Quizzes, "/api/quizzes", "/api/quizzes/<int:quiz_id>")
 api.add_resource(Subjects, "/api/subjects", "/api/subjects/<int:subject_id>")
-api.add_resource(QuizSubmit, "/api/submit")
 api.add_resource(UserScores, "/api/scores")

@@ -23,20 +23,11 @@ const links = computed(() => !currentUser.value ?
       { name: "Scores", path: "/user/scores" },
       { name: "Summary", path: "/user/summary" },
     ]);
-
-const errMsg = ref(null);
-onErrorCaptured(e => {
-  errMsg.value = e.message;
-  return true;
-});
 </script>
 
 <template>
   <NavBar :links class="bg-dark" :hidden />
-  <div v-if="errMsg" class="alert alert-danger" role="alert">
-    {{ errMsg }}
-  </div>
-  <KeepAlive v-else>
+  <KeepAlive>
     <Suspense>
       <template #default>
         <div class="page">

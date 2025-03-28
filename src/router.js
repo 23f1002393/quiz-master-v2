@@ -11,7 +11,6 @@ import UserTakeQuiz from '@views/user/UserTakeQuiz.vue'
 import AdminHome from '@views/admin/AdminHome.vue'
 import AdminQuiz from '@views/admin/AdminQuiz.vue'
 import AdminNewQuiz from '@views/admin/AdminNewQuiz.vue'
-import AdminEditQuiz from '@views/admin/AdminEditQuiz.vue'
 import AdminNewSubject from '@views/admin/AdminNewSubject.vue'
 
 import { store } from '@/store'
@@ -98,11 +97,6 @@ export const router = createRouter({
           name: 'addQuiz',
           path: 'quiz/add',
           component: AdminNewQuiz,
-        },
-        {
-          name: 'editQuiz',
-          path: 'quiz/edit/:id(\\d+)',
-          component: AdminEditQuiz,
         },
         {
           name: 'addSubject',

@@ -1,13 +1,15 @@
 <script setup>
-import { reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 
 const store = useStore();
 const router = useRouter();
 
-const index = computed(() => router.params.id);
+
+const index = computed(() => router.currentRoute.value.params.id);
 const subject = reactive(store.state.subjects[index.value]);
+const currentUser = computed(() => store.state.currentUser);
 
 const addChapter = () => {
   subject.chapters.push({

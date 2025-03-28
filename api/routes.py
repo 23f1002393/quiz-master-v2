@@ -4,8 +4,7 @@ from datetime import datetime
 from api.database import session
 from api.models import User, Quiz, Score
 from sqlalchemy.exc import IntegrityError
-from api.utils import compute_user_statistics
-from api.tasks import compute_monthly_statistics
+from api.tasks import compute_monthly_statistics, compute_user_statistics
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import request, send_from_directory, make_response, jsonify, Blueprint
 from flask_jwt_extended import (
@@ -109,7 +108,19 @@ def submit_quiz(quiz_id):
 @jwt_required()
 def user_stats():
     current_user = get_current_user()
-    [by_subject, by_month] = compute_user_statistics(current_user)
+    user = dict(
+        email=current_user.email,
+        scores=[dict(
+            subject=score.quiz.subject.name,
+            date_of_quiz=score.quiz.date_of_quiz,
+            user_score=score.user_score,
+            total_score=score.total_score,
+        ) for score in current_user.scores],
+    )
+    result = compute_user_statistics.delay(user)
+    while not result.ready():
+        pass
+    [by_subject, by_month] = result.get()
     return jsonify({
         "by_subject": by_subject,
         "by_month": by_month

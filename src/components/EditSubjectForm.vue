@@ -28,27 +28,14 @@ const removeChapter = (index) => {
 const submit = async () => {
   if (currentUser.value == null) return
 
-  const response = await fetch('http://localhost:5000/subjects', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${currentUser.value.token}`,
-    },
-    body: JSON.stringify({
-      ...subject,
-    }),
-  })
-
-  subject.value = {
-    name: '',
-    description: '',
-    chapters: [],
-  }
-
-  if (!response.ok)
-    console.warn(`[ERROR: ${response.status}] Failed to add subject!`)
-
-  emit('refresh')
+  store.dispatch('updateSubject', subject.value)
+    .then(() => subject.value = {
+      name: '',
+      description: '',
+      chapters: [],
+    })
+    .then(() => emit('refresh'))
+    .catch(error => console.error('[ERROR]', error));
 }
 </script>
 

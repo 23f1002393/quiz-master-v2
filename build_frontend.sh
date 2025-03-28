@@ -1,3 +1,4 @@
 npm run build
-mkdir -p static/images
-sed -i 's/\/assets\//\/static\/assets\//g' static/index.html
+mkdir -p ../backend/static/images
+cp public/favicon.ico ../backend/static/favicon.ico
+sed -i 's/\/assets\//\/static\/assets\//g' ../backend/static/index.html
